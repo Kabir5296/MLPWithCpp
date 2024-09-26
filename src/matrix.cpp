@@ -1,9 +1,12 @@
 #include <iostream>
-#include <math.h>
-#include <vector>
 #include "matrix.h"
-#include <functional>
 #include <random>
+
+/*
+Not implemented:
+    1. Zeros matrix
+    2. Ones matrix
+*/
 
 Matrix::Matrix(int num_rows, int num_columns) {
     data.resize(num_rows);

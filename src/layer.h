@@ -2,7 +2,6 @@
 #define LAYER_H
 
 #include <iostream>
-#include <vector>
 #include "matrix.h"
 
 class Layer {

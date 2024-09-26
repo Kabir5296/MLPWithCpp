@@ -1,8 +1,12 @@
 #include <iostream>
-#include <vector>
 #include "matrix.h"
-#include <functional>
 #include "layer.h"
+
+/*
+Not implemented:
+    1. Backward
+    2. Load state dict
+*/
 
 Layer::Layer(int input_dim, int output_dim): input_dim(input_dim), output_dim(output_dim), weight(output_dim, input_dim), bias(output_dim, 1) {
     /*
