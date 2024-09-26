@@ -14,6 +14,7 @@ public:
     Matrix forward(Matrix inputMatrix);
     void printWeight();
     void printBias();
+    void printLayer();
 };
 
 #endif

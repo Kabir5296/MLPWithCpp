@@ -57,3 +57,7 @@ void Layer::printWeight() {
 void Layer::printBias() {
     bias.printMatrix();
 }
+
+void Layer::printLayer() {
+    std::cout<<"Layer of dimension "<<input_dim<<" X "<<output_dim<<std::endl;
+}
