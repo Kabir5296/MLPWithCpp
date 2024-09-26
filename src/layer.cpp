@@ -15,8 +15,7 @@ public:
     }
 
     Matrix forward(Matrix inputMatrix) {
-        Matrix result(input_dim, output_dim);
-        result = bias.addition(weight.multiplication(inputMatrix));
+        Matrix result = bias.addition(weight.multiplication(inputMatrix));
         return result;
     }
 
