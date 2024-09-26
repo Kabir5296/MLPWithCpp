@@ -1,35 +1,40 @@
 #include <iostream>
 #include "src/matrix.h"
+#include "src/layer.h"
 
 int main() {
-    Matrix demo(6,2), demo2(2,2);
-
-    std::cout << "Input Matrix 1"<<std::endl;
+    int layer_input_size, layer_output_size, input_feature_size, input_batch_size;
     
-    demo.randomInit(-3,4);
-    demo.printMatrix();
+    std::cout << "Enter layer input size" << std::endl;
+    std::cin >> layer_input_size;
 
-    std::cout << "Another" << std::endl;
+    std::cout << "Enter layer output size" << std::endl;
+    std::cin >> layer_output_size;
 
-    demo2.randomInit();
-    demo2.printMatrix();
+    std::cout << "Enter input feature size" << std::endl;
+    std::cin >> input_feature_size;
 
-    // std::cout << "Input Matrix 2"<<std::endl;
+    std::cout << "Enter batch size" << std::endl;
+    std::cin >> input_batch_size;
+
+    std::cout << "Initializing layer and input matrix" << std::endl;
+
+    Layer input(layer_input_size, layer_output_size);
+    Matrix inputs(input_feature_size,input_batch_size);
+
+    std::cout << "WEIGHT" << '\n';
+    input.printWeight();
+
+    std::cout << "BIAS" << '\n';
+    input.printBias();
+
+    std::cout<< "Matrix input initialized" << '\n';
+    inputs.randomInit(-1,1);
+    inputs.printMatrix();
     
-    // demo2.takeInput();
+    std::cout<< "Forward Pass" << '\n';
+    inputs = input.forward(inputs);
+    inputs.printMatrix();
 
-    // Matrix sum = demo.addition(demo2);
-
-    // Matrix mul = demo.multiplication(demo2);
-
-    // std::cout << "Sum"<<std::endl;
-    // sum.printMatrix();
-
-    // std::cout << "Mul"<<std::endl;
-    // mul.printMatrix();
-
-    // std::cout << "Transpose"<<std::endl;
-    // demo.transpose().printMatrix();
-    
-    return 0;
+    std::cout<< "CODE RUN SUCCESSFUL" << '\n';
 }
