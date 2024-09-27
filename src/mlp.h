@@ -9,5 +9,6 @@ public:
     std::vector <int> hidden_size;
     std::vector <Layer> layers;
     MultiLayerPerceptron(int input_size, int output_size, std::vector <int> hidden_size);
+    Matrix forward(Matrix input_data);
     void printMLP();
 };

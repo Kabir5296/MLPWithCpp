@@ -10,7 +10,7 @@ public:
     Matrix bias;
     int input_dim, output_dim;
     Layer(int input_dim, int output_dim);
-    Matrix updateBiasMetrixForBatch(int batch_size, Matrix bias);
+    Matrix updateBiasMatrixForBatch(int batch_size, Matrix bias);
     Matrix forward(Matrix inputMatrix);
     void printWeight();
     void printBias();

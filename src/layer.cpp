@@ -19,19 +19,19 @@ Layer::Layer(int input_dim, int output_dim): input_dim(input_dim), output_dim(ou
     bias.randomInit(-0.1,0.1);
 }
 
-Matrix Layer::updateBiasMetrixForBatch(int batch_size, Matrix bias) {
+Matrix Layer::updateBiasMatrixForBatch(int batch_size, Matrix bias) {
     /*
     In case for batch_size greater than one, the bias matrix is extended in dimension and copied for all columns.
     batch_size : number of input data points for each batch.
     bias : bias matrix for single input.
     */
-    Matrix biasNew(output_dim, batch_size);
-    for (int i=0; i<output_dim; i++) {
-        for (int j=0; j<batch_size; j++) {
-            biasNew.data[i][j] = bias.data[i][0];
-        }
+    std::cout<<"batching biases for better calculation"<<std::endl;
+    bias = bias.transpose();
+    for (int i =0; i<batch_size-1; i++) {
+        bias.data.push_back(bias.data[0]);
     }
-    return biasNew;
+    bias = bias.transpose();
+    return bias;
 }
 
 Matrix Layer::forward(Matrix inputMatrix) {
@@ -44,7 +44,7 @@ Matrix Layer::forward(Matrix inputMatrix) {
     } 
     int batch_size = inputMatrix.data[0].size();
     if (batch_size > 1) 
-        bias = updateBiasMetrixForBatch(batch_size, bias);
+        bias = updateBiasMatrixForBatch(batch_size, bias);
 
     Matrix result = bias.addition(weight.multiplication(inputMatrix));
     return result;
@@ -60,4 +60,51 @@ void Layer::printBias() {
 
 void Layer::printLayer() {
     std::cout<<"Layer of dimension "<<input_dim<<" X "<<output_dim<<std::endl;
+    std::cout<<"\n Weights are: \n"<<std::endl;
+    weight.printMatrix();
+    std::cout<<"\n Biases are: \n"<<std::endl;
+    bias.printMatrix();
+    std::cout<<"\n"<<std::endl;
 }
+
+void testLayer() {
+    int layer_input_size, layer_output_size, input_feature_size, input_batch_size;
+    
+    std::cout << "Enter layer input size" << std::endl;
+    std::cin >> layer_input_size;
+
+    std::cout << "Enter layer output size" << std::endl;
+    std::cin >> layer_output_size;
+
+    std::cout << "Enter input feature size" << std::endl;
+    std::cin >> input_feature_size;
+
+    std::cout << "Enter batch size" << std::endl;
+    std::cin >> input_batch_size;
+
+    std::cout << "Initializing layer and input matrix" << std::endl;
+
+    Layer input(layer_input_size, layer_output_size);
+    Matrix inputs(input_feature_size,input_batch_size);
+
+    std::cout << "WEIGHT" << '\n';
+    input.printWeight();
+
+    std::cout << "BIAS" << '\n';
+    input.printBias();
+
+    std::cout<< "Matrix input initialized" << '\n';
+    inputs.randomInit(-1,1);
+    inputs.printMatrix();
+    
+    std::cout<< "Forward Pass" << '\n';
+    inputs = input.forward(inputs);
+    inputs.printMatrix();
+
+    std::cout<< "LAYERS CODE RUN SUCCESSFUL" << '\n';
+}
+
+// int main() {
+//     testLayer();
+//     return 0;
+// }
