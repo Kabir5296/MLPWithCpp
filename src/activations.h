@@ -4,6 +4,7 @@
 #include "matrix.h"
 #include <iostream>
 
-Matrix activationReLU(Matrix input_matrix);
+Matrix relu(Matrix input_matrix);
+Matrix sigmoid(Matrix input_matrix);
 
 #endif

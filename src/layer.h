@@ -5,6 +5,7 @@
 #include "matrix.h"
 #include <string.h>
 #include <functional>
+#include "activations.h"
 
 class Layer {
 public:
@@ -12,7 +13,8 @@ public:
     Matrix bias;
     std::function<Matrix(Matrix)> activation;
     int input_dim, output_dim;
-    Layer(int input_dim, int output_dim, std::function<Matrix(Matrix)> activation);
+    // Layer(int input_dim, int output_dim);
+    Layer(int input_dim, int output_dim, std::function<Matrix(Matrix)> activation = relu);
     Matrix updateBiasMatrixForBatch(int batch_size, Matrix bias);
     Matrix forward(Matrix inputMatrix);
     Matrix activationDummy(Matrix input_matrix);

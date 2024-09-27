@@ -21,10 +21,6 @@ Layer::Layer(int input_dim, int output_dim, std::function<Matrix(Matrix)> activa
     bias.randomInit(-0.1,0.1);
 }
 
-Matrix Layer::activationDummy(Matrix input_matrix) {
-    return input_matrix;
-}
-
 Matrix Layer::updateBiasMatrixForBatch(int batch_size, Matrix bias) {
     /*
     In case for batch_size greater than one, the bias matrix is extended in dimension and copied for all columns.
@@ -90,7 +86,7 @@ void testLayer() {
 
     std::cout << "Initializing layer and input matrix" << std::endl;
 
-    Layer input(layer_input_size, layer_output_size, activationReLU);
+    Layer input(layer_input_size, layer_output_size, relu);
     Matrix inputs(input_feature_size,input_batch_size);
 
     std::cout << "WEIGHT" << '\n';
@@ -110,7 +106,7 @@ void testLayer() {
     std::cout<< "LAYERS CODE RUN SUCCESSFUL" << '\n';
 }
 
-int main() {
-    testLayer();
-    return 0;
-}
+// int main() {
+//     testLayer();
+//     return 0;
+// }
