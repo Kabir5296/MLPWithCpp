@@ -1,22 +1,28 @@
 #include <iostream>
 #include "matrix.h"
 #include "layer.h"
-
+#include <functional>
+#include "activations.h"
 /*
 Not implemented:
     1. Backward
     2. Load state dict
 */
 
-Layer::Layer(int input_dim, int output_dim): input_dim(input_dim), output_dim(output_dim), weight(output_dim, input_dim), bias(output_dim, 1) {
+Layer::Layer(int input_dim, int output_dim, std::function<Matrix(Matrix)> activation): input_dim(input_dim), output_dim(output_dim), weight(output_dim, input_dim), bias(output_dim, 1), activation(activation) {
     /*
     input_dim : number of features from input layer or number of neurons from previous layer.
     output_dim : number of neurons of current layer.
     weight : weight matrix. the dimension is output_dim X input_dim.
     bias : bias matrix. the dimension (for batch size 1, which is default) is output_dim X 1.
+    activation : the activation function needed to be applied on the wx+b result.
     */
     weight.randomInit(-0.1, 0.1);
     bias.randomInit(-0.1,0.1);
+}
+
+Matrix Layer::activationDummy(Matrix input_matrix) {
+    return input_matrix;
 }
 
 Matrix Layer::updateBiasMatrixForBatch(int batch_size, Matrix bias) {
@@ -47,7 +53,7 @@ Matrix Layer::forward(Matrix inputMatrix) {
         bias = updateBiasMatrixForBatch(batch_size, bias);
 
     Matrix result = bias.addition(weight.multiplication(inputMatrix));
-    return result;
+    return activation(result);
 }
 
 void Layer::printWeight() {
@@ -84,7 +90,7 @@ void testLayer() {
 
     std::cout << "Initializing layer and input matrix" << std::endl;
 
-    Layer input(layer_input_size, layer_output_size);
+    Layer input(layer_input_size, layer_output_size, activationReLU);
     Matrix inputs(input_feature_size,input_batch_size);
 
     std::cout << "WEIGHT" << '\n';
@@ -94,7 +100,7 @@ void testLayer() {
     input.printBias();
 
     std::cout<< "Matrix input initialized" << '\n';
-    inputs.randomInit(-1,1);
+    inputs.randomInit(0,1);
     inputs.printMatrix();
     
     std::cout<< "Forward Pass" << '\n';
@@ -104,7 +110,7 @@ void testLayer() {
     std::cout<< "LAYERS CODE RUN SUCCESSFUL" << '\n';
 }
 
-// int main() {
-//     testLayer();
-//     return 0;
-// }
+int main() {
+    testLayer();
+    return 0;
+}

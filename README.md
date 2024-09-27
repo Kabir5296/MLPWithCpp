@@ -5,6 +5,6 @@ Machine Learning Engineer, ACI Limited
 
 #### Compile and Run
 ```
-g++ -g src/matrix.cpp src/layer.cpp main.cpp -o main
+g++ -g src/*.cpp main.cpp -o main
 ./main
 ```
