@@ -125,7 +125,7 @@ public:
         data = std::move(transposeData);
     }
 
-    NDArray transpose(NDArray arr) {
+    NDArray transpose(NDArray arr) const {
         std::vector<size_t> oldShape = arr.shape;
         std::vector<size_t> oldStrides = arr.strides;
 
