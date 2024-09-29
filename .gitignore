@@ -1,4 +1,11 @@
-.vscode
-main
-layer
-mlp
+# Ignore everything
+*
+
+# But not these files...
+!*.cpp
+!*.h
+!*.md
+!.gitignore
+
+# ...even if they are in subdirectories
+!*/
