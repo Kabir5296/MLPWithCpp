@@ -193,7 +193,7 @@ public:
 };
 
 // int main() {
-//     NDArray arr({2,2});
+//     NDArray<int> arr({2,2});
 //     arr.takeInput();
 //     std::cout << arr[{1,1}] << std::endl;
 // }
