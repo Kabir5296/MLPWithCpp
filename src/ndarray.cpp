@@ -22,12 +22,12 @@ Methods:
     operator[]: Uses [] operator to access array elements. i.e., arr[{i,j,k}] for a 3D array.
 */
 
-template<typename Tem>
+template<typename T>
 class NDArray {
 private:
     std::vector<size_t> shape;
     std::vector<size_t> strides;
-    std::vector<Tem> data;
+    std::vector<T> data;
     size_t num_dim;
 
     size_t calculateSize(std::vector<size_t> shape) const {
@@ -42,7 +42,7 @@ private:
         std::vector<size_t> strides;
         strides.resize(num_dim);
         strides[num_dim - 1] = 1;
-        for (size_t i = num_dim - 2; i >= 0; --i) {
+        for (int i = static_cast<int>(num_dim) - 2; i >= 0; --i) {
             strides[i] = strides[i + 1] * shape[i + 1];
         }
         return strides;
@@ -73,8 +73,20 @@ private:
         return indices;
     }
 
+bool isBroadcastable(const NDArray& other) const {
+    const size_t minDim = std::min(num_dim, other.num_dim);
+    
+    for (size_t i=0; i<minDim; ++i ) {
+        size_t dim = shape[num_dim - i -1];
+        size_t otherDim = other.shape[other.num_dim - i - 1];
+        if (dim != 1 && otherDim !=1 && dim != otherDim)
+            return false;
+    }
+    return true;
+}
+
 public:
-    NDArray(std::vector<size_t> shape): shape(shape), num_dim(shape.size()), strides(calculateStrides(num_dim, shape)) {
+    NDArray(std::vector<size_t> shape): shape(shape), num_dim(shape.size()), strides(calculateStrides(shape.size(), shape)) {
         data.resize(calculateSize(shape));
     }
 
@@ -106,14 +118,14 @@ public:
         return !(*this == other);
     }
 
-    void T() {
+    void transposeInPlace() {
         std::vector<size_t> oldShape = shape;
         std::vector<size_t> oldStrides = strides;
 
         std::reverse(shape.begin(), shape.end());
         strides = calculateStrides(num_dim, shape);
         
-        std::vector<Tem> transposeData(data.size());
+        std::vector<T> transposeData(data.size());
         std::vector<size_t> oldIndices(num_dim,0);
 
         for (size_t i=0; i<data.size(); ++i) {
@@ -132,7 +144,7 @@ public:
         std::reverse(arr.shape.begin(), arr.shape.end());
         arr.strides = calculateStrides(arr.num_dim, arr.shape);
         
-        std::vector<Tem> transposeData(arr.data.size());
+        std::vector<T> transposeData(arr.data.size());
         std::vector<size_t> oldIndices(num_dim,0);
 
         for (size_t i=0; i<arr.data.size(); ++i) {
@@ -145,11 +157,18 @@ public:
         return arr;
     }
 
+    // NDArray broadcast(const NDArray& other) const {
+    //     // check compatibility
+    //     if (data.shape.size() < other.shape.size()) {
+
+    //     }
+    // }
+
     void zeroInit() {
-        std::fill(data.begin(), data.end(), Tem(0.0));
+        std::fill(data.begin(), data.end(), T(0.0));
     }
 
-    void randomInit(Tem min = Tem(-0.1), Tem max = Tem(0.1), std::optional<unsigned> seed = std::nullopt) {
+    void randomInit(T min = T(-0.1), T max = T(0.1), std::optional<unsigned> seed = std::nullopt) {
         std::default_random_engine gen;
         if (seed) 
             gen.seed(*seed);
@@ -167,7 +186,7 @@ public:
         }
     }
 
-    Tem operator[](std::vector<size_t> indices) {
+    T operator[](std::vector<size_t> indices) {
         return data[calculateIndex(indices)];
     }    
 
@@ -192,8 +211,10 @@ public:
 
 };
 
-// int main() {
-//     NDArray<int> arr({2,2});
-//     arr.takeInput();
-//     std::cout << arr[{1,1}] << std::endl;
-// }
+int main() {
+    NDArray<float> arr({2,2,3});
+    arr.printShapeAndStrides();
+    NDArray<int> arr2({2,2});
+    arr2.printShapeAndStrides();
+    // std::cout<< arr.isBroadcastable(arr2);
+}
