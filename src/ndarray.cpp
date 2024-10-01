@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <random>
 #include <optional>
+#include <iomanip>
 
 /*
 n-Dimensional array implementation in C++.
@@ -42,7 +43,7 @@ private:
         std::vector<size_t> strides;
         strides.resize(num_dim);
         strides[num_dim - 1] = 1;
-        for (size_t i = num_dim - 2; i >= 0; --i) {
+        for (int i = num_dim - 2; i >= 0; --i) {
             strides[i] = strides[i + 1] * shape[i + 1];
         }
         return strides;
@@ -74,7 +75,7 @@ private:
     }
 
 public:
-    NDArray(std::vector<size_t> shape): shape(shape), num_dim(shape.size()), strides(calculateStrides(num_dim, shape)) {
+    NDArray(std::vector<size_t> shape): shape(shape), num_dim(shape.size()), strides(calculateStrides(shape.size(), shape)) {
         data.resize(calculateSize(shape));
     }
 
@@ -149,30 +150,61 @@ public:
         std::fill(data.begin(), data.end(), Tem(0.0));
     }
 
-    void randomInit(Tem min = Tem(-0.1), Tem max = Tem(0.1), std::optional<unsigned> seed = std::nullopt) {
-        std::default_random_engine gen;
-        if (seed) 
-            gen.seed(*seed);
-        else {           
-            std::random_device rd;
-            gen.seed(rd());
-        } 
-        if constexpr (std::is_integral_v<T>) {
-            std::uniform_int_distribution<T> dis(min, max);
-            std::generate(data.begin(), data.end(), [&]() {return dis(gen);});
-        }
-        else {
-            std::uniform_real_distribution<T> dis(min, max);
-            std::generate(data.begin(), data.end(), [&]() {return dis(gen);});
-        }
-    }
+    // void randomInit(Tem min = Tem(-0.1), Tem max = Tem(0.1), std::optional<unsigned> seed = std::nullopt) {
+    //     std::default_random_engine gen;
+    //     if (seed) 
+    //         gen.seed(*seed);
+    //     else {           
+    //         std::random_device rd;
+    //         gen.seed(rd());
+    //     } 
+    //     if constexpr (std::is_integral_v<T>) {
+    //         std::uniform_int_distribution<T> dis(min, max);
+    //         std::generate(data.begin(), data.end(), [&]() {return dis(gen);});
+    //     }
+    //     else {
+    //         std::uniform_real_distribution<T> dis(min, max);
+    //         std::generate(data.begin(), data.end(), [&]() {return dis(gen);});
+    //     }
+    // }
 
     Tem operator[](std::vector<size_t> indices) {
         return data[calculateIndex(indices)];
     }    
 
-    void printArray() {
-        throw std::runtime_error("Print function not implemented yet.");
+    int getFlatIndex(const std::vector<int>& indices, const std::vector<int>& shape) {
+        int index = 0;
+        int multiplier = 1;
+        for (int i = shape.size()-1; i >= 0; --i) {
+            index += indices[i] * multiplier;
+            multiplier *= shape[i];
+        }
+        return index;
+
+    }
+    void printArray(const std::vector<int>& array, const std::vector<int>& shape, std::vector<int>& indices, int depth) {
+        // throw std::runtime_error("Print function not implemented yet.");
+        
+        if (depth == shape.size()) {
+            std::cout << array[getFlatIndex(indices, shape)] << " ";
+        }
+        else {
+            std::cout << "[";
+            for (int i = 0; i < shape[depth]; ++i) {
+                indices[depth] = i;
+                printArray(array, shape, indices, depth+1);
+                if (depth + 1 == shape.size()) {
+                    std::cout << " ";
+                }
+
+            }
+
+            std::cout << "] ";
+            if (depth == 0) {
+                std::cout << "\n";
+            }
+        }
+
     }
 
     void printShapeAndStrides() const {
@@ -192,8 +224,9 @@ public:
 
 };
 
-// int main() {
-//     NDArray<int> arr({2,2});
-//     arr.takeInput();
-//     std::cout << arr[{1,1}] << std::endl;
-// }
+int main() {
+    NDArray<int> arr({2,2});
+    arr.takeInput();
+    std::cout << arr[{1,1}] << std::endl;
+
+}
