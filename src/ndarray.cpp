@@ -1,9 +1,10 @@
 #include <iostream>
 #include <vector>
-#include <random>
 #include <algorithm>
 #include <random>
 #include <optional>
+#include <stdexcept>
+#include <functional>
 
 /*
 n-Dimensional array implementation in C++.
@@ -38,7 +39,7 @@ private:
         return size;
     }
 
-    std::vector<size_t> calculateStrides(size_t num_dim, std::vector<size_t> shape) const {
+    static std::vector<size_t> calculateStrides(size_t num_dim, std::vector<size_t> shape) {
         std::vector<size_t> strides;
         strides.resize(num_dim);
         strides[num_dim - 1] = 1;
@@ -73,21 +74,29 @@ private:
         return indices;
     }
 
-bool isBroadcastable(const NDArray& other) const {
-    const size_t minDim = std::min(num_dim, other.num_dim);
-    
-    for (size_t i=0; i<minDim; ++i ) {
-        size_t dim = shape[num_dim - i -1];
-        size_t otherDim = other.shape[other.num_dim - i - 1];
-        if (dim != 1 && otherDim !=1 && dim != otherDim)
-            return false;
+    void printVector() const {
+        std::cout << "[" ;
+        for (size_t i=0; i<shape.size(); ++i) {
+            std::cout << data[i] << "," <std::endl;
+        }
+        std::cout << "]" << std::endl;
     }
-    return true;
-}
 
 public:
     NDArray(std::vector<size_t> shape): shape(shape), num_dim(shape.size()), strides(calculateStrides(shape.size(), shape)) {
         data.resize(calculateSize(shape));
+    }
+
+    std::vector<size_t> getShape() {
+        return shape;
+    }
+
+    std::vector<size_t> getStrides() {
+        return strides;
+    }
+
+    size_t getDims() {
+        return num_dim;
     }
 
     void takeInput() {
@@ -137,7 +146,7 @@ public:
         data = std::move(transposeData);
     }
 
-    NDArray transpose(NDArray arr) const {
+    static NDArray transpose(NDArray arr) {
         std::vector<size_t> oldShape = arr.shape;
         std::vector<size_t> oldStrides = arr.strides;
 
@@ -145,7 +154,7 @@ public:
         arr.strides = calculateStrides(arr.num_dim, arr.shape);
         
         std::vector<T> transposeData(arr.data.size());
-        std::vector<size_t> oldIndices(num_dim,0);
+        std::vector<size_t> oldIndices(arr.num_dim,0);
 
         for (size_t i=0; i<arr.data.size(); ++i) {
             oldIndices = indexToIndices(i);
@@ -157,12 +166,92 @@ public:
         return arr;
     }
 
-    // NDArray broadcast(const NDArray& other) const {
-    //     // check compatibility
-    //     if (data.shape.size() < other.shape.size()) {
+    static std::vector<size_t> broadcastShape(std::vector<size_t> biggerShape, std::vector<size_t> smallerShape) {
+        if (biggerShape.size() < smallerShape.size())
+            std::swap(biggerShape, smallerShape);
 
-    //     }
-    // }
+        smallerShape.insert(smallerShape.begin(), biggerShape.size() - smallerShape.size(),1);
+        const size_t maxDim = smallerShape.size();
+        std::vector<size_t> newShape(maxDim);
+
+        for (size_t i=0; i<maxDim; ++i) {
+            const size_t smallDim = smallerShape[maxDim -i -1];
+            const size_t bigDim = biggerShape[maxDim -i -1];
+
+            if (smallDim  == bigDim) {
+                newShape[maxDim -i -1] = smallDim;
+                continue;
+            }
+            else if (smallDim == 1) {
+                newShape[maxDim -i -1] = bigDim;
+                continue;
+            }
+            else if (bigDim == 1) {
+                newShape[maxDim -i -1] = smallDim;
+                continue;
+            }
+            else {
+                throw std::runtime_error("Not compatible for broadcasting.");
+            }
+        }
+        return newShape;
+
+    }
+
+    template<typename BinaryOperation>
+    NDArray elementWise(const NDArray& other, BinaryOperation op) const {
+        std::vector<size_t> newShape = broadcastShape(this->shape, other.shape);
+        NDArray<T> newArray(newShape);
+
+        std::vector<size_t> this_strides = this->strides;
+        std::vector<size_t> other_strides = other.strides;
+        std::vector<size_t> new_strides = newArray.strides;
+
+        // Pad this_strides and other_strides with 0 if necessary
+        this_strides.insert(this_strides.begin(), newShape.size() - this_strides.size(), 0);
+        other_strides.insert(other_strides.begin(), newShape.size() - other_strides.size(), 0);
+
+        std::vector<size_t> indices(newShape.size(), 0);
+        size_t total_elements = newArray.calculateSize(newShape);
+
+        for (size_t i = 0; i < total_elements; ++i) {
+            size_t this_index = 0;
+            size_t other_index = 0;
+
+            for (size_t dim = 0; dim < newShape.size(); ++dim) {
+                this_index += (indices[dim] % this->shape[dim]) * this_strides[dim];
+                other_index += (indices[dim] % other.shape[dim]) * other_strides[dim];
+            }
+
+            newArray.data[i] =  op(this->data[this_index], other.data[other_index]);
+
+            // Update indices
+            for (int dim = newShape.size() - 1; dim >= 0; --dim) {
+                if (++indices[dim] < newShape[dim]) {
+                    break;
+                }
+                indices[dim] = 0;
+            }
+        }
+
+        return newArray;
+    }
+
+    NDArray operator+(const NDArray& other) {
+        return (this->elementWise(other, std::plus<T>()));
+    }
+
+    NDArray operator-(const NDArray& other) {
+        return (this->elementWise(other, std::minus<T>()));
+    }
+
+    NDArray operator*(const NDArray& other) {
+        return (this->elementWise(other, std::multiplies<T>()));
+    }
+
+    NDArray operator/(const NDArray& other) {
+        return (this->elementWise(other, std::divides<T>()));
+    }
 
     void zeroInit() {
         std::fill(data.begin(), data.end(), T(0.0));
@@ -188,10 +277,6 @@ public:
 
     T operator[](std::vector<size_t> indices) {
         return data[calculateIndex(indices)];
-    }    
-
-    void printArray() {
-        throw std::runtime_error("Print function not implemented yet.");
     }
 
     void printShapeAndStrides() const {
@@ -212,9 +297,17 @@ public:
 };
 
 int main() {
-    NDArray<float> arr({2,2,3});
+    NDArray<float> arr({2,3,1});
+    arr.randomInit(0.1, 1);
     arr.printShapeAndStrides();
-    NDArray<int> arr2({2,2});
+    NDArray<float> arr2({2,1,3});
+    arr2.randomInit(0.1, 1);
     arr2.printShapeAndStrides();
-    // std::cout<< arr.isBroadcastable(arr2);
+    
+    NDArray arr3 = arr / arr2; 
+
+    for (size_t i=0; i<arr3.getShape().size(); ++i) {
+        std::cout<<arr3.getShape()[i]<<",";
+    }
+    std::cout<<std::endl;
 }
